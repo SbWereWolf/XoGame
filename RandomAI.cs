@@ -1,31 +1,25 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace XoGame
 {
-    class RandomAI : IPlayer
+    internal class RandomAi : IPlayer
     {
-        // duplicated in User and RandomUI since I'm not a fan of superclasses and know no other way yet
-        public string name;
+        private readonly string _name;
 
-        public RandomAI(string name)
+        public RandomAi(string name)
         {
-            this.name = name;
+            this._name = name;
         }
-        // duplicated in User and RandomUI since I'm not a fan of superclasses and know no other way yet
 
-        public Move do_move()
+        public Move Do_move()
         {
             var rand = new Random();
-            return new Move { x = rand.Next(0,2 +1), y = rand.Next(0,2 +1) };
+            return new Move { X = rand.Next(0,2 +1), Y = rand.Next(0,2 +1) };
         }
 
-        public string get_name()
+        public string Get_name()
         {
-            return name;
+            return _name;
         }
     }
 }

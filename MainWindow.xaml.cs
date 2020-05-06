@@ -1,151 +1,137 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace XoGame
 {
 
     public struct Move
     {
-        public int x;
-        public int y;
+        public int X;
+        public int Y;
     }
 
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class MainWindow
     {
+        private const string TitlePrefix = "Крестики-нолики";
+        private const string NoOneWon = "ничья";
 
-        const string titlePrefix = "Крестики-нолики";
-        //const string gameIsFinished = "игра закончена";
-        const string noOneWon = "ничья";
-        const string theWinnerIs = "победил:";
+        private const string TheWinnerIs = "победил:";
 
-        Game game;
-        User user;
-        //Board board;
+        private readonly Game _game;
+
+        private readonly User _user;
 
         public MainWindow()
         {
             InitializeComponent();
 
-            user = new User("игрок");
-            var opponent = new RandomAI("комп");
+            _user = new User("игрок");
+            var opponent = new RandomAi("комп");
             var board = new Board(width: 3, height: 3);
-            game = new Game(x: user, o: opponent, given_board: board);
-
-
-            //game.step until game.finished?
-            //user.see game
-            //puts 'Выиграл: %s' % game.winner.name
+            _game = new Game(x: _user, o: opponent, givenBoard: board);
         }
 
         private void MoveButton_Click(object sender, RoutedEventArgs e)
         {
-            // этот метод на руби по другому (по-лучше), но там синхронный что-ли польз. интерфейс
-            // как при таком написать лучше -S ещё надо найти/придумать
+            if (_game == null)
+            {
+                return;
+            }
 
-            if (game.finished())
+            if (_game.Finished())
             {
                 return;
             }
 
             var theButton = (Button)sender;
             var move = ButtonToMove(theButton);
-            user.move_is(move);
-            var playerMove = game.step();
+            _user?.move_is(move);
+            var playerMove = _game.Step();
 
             if (!playerMove.Equals(Game.impossible_move()))
             {
                 MoveMade(move, "X");
 
-                if (game.finished()) {
-                    finish();
+                if (_game != null && _game.Finished()) {
+                    Finish();
                     return;
                 }
 
-                Move opponentMove;
-                do
+                if (_game != null)
                 {
-                    opponentMove = game.step();
-                } while (opponentMove.Equals(Game.impossible_move()));
+                    Move opponentMove;
+                    do
+                    {
+                        opponentMove = _game.Step();
+                    } while (opponentMove.Equals(Game.impossible_move()));
 
-                MoveMade(opponentMove, "0");
+                    MoveMade(opponentMove, "0");
 
-                if (game.finished())
-                {
-                    finish();
-                    return;
+                    if (_game != null && _game.Finished())
+                    {
+                        Finish();
+                    }
                 }
+
             }
-
-            //MessageBoxResult result = MessageBox.Show("Hello: " + move.x.ToString() + " " + move.y.ToString());   
         }
 
         private void MoveMade(Move move, string what)
         {
             var button = MoveToButton(move);
-            button.Content = what;
+            if (button != null) button.Content = what;
         }
 
-        private void finish()
+        private void Finish()
         {
-            if (game.hasWinner())
+            if (_game != null && _game.HasWinner())
             {
-                this.Title = titlePrefix + ": " + theWinnerIs + " " + game.winner();
+                this.Title = TitlePrefix + ": " + TheWinnerIs + " " + _game.Winner();
             }
             else
             {
-                this.Title = titlePrefix + ": " + noOneWon; // gameIsFinished + ": " + winner();
+                this.Title = TitlePrefix + ": " + NoOneWon;
             }
         }
+        
+        private const string ButtonPrefix = "At";
 
-/*        private string winner()
-        {
-            return "победитель кто-то там";
-        }*/
-
-
-
-        // "AtXY" (button.Name)
-        const string buttonPrefix = "At";
-        const int xpos = 2;
-        const int ypos = 3;
+        private const int Xpos = 2;
+        private const int Ypos = 3;
 
 
         private Button MoveToButton(Move move)
         {
-            return (Button)this.FindName(buttonPrefix + move.x.ToString() + move.y.ToString());
+            return (Button)this.FindName(ButtonPrefix + move.X.ToString() + move.Y.ToString());
         }
                 
-        private Move ButtonToMove(Button button)
+        private static Move ButtonToMove(Button button)
         {
-            return new Move { x = ButtonX(button), y = ButtonY(button) };
+            return new Move { X = ButtonX(button), Y = ButtonY(button) };
         }
 
         
-        private int ButtonX(Button button)
+        private static int ButtonX(Button button)
         {
-            var name = button.Name;
-            return Int32.Parse(name[xpos].ToString());
+            var result = -1;
+            var name = button?.Name;
+
+            if (name != null) result = int.Parse(name[Xpos].ToString());
+
+            return result;
         }
 
-        private int ButtonY(Button button)
+        private static int ButtonY(Button button)
         {
-            var name = button.Name;
-            return Int32.Parse(name[ypos].ToString());
+            var result = -1;
+
+            var name = button?.Name;
+
+            if (name != null) result = int.Parse(name[Ypos].ToString());
+            return result;
         }
     }
 }

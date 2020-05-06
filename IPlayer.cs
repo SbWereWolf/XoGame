@@ -1,15 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace XoGame
+﻿namespace XoGame
 {
-    interface IPlayer
+    internal interface IPlayer
     {
-        Move do_move();
+        Move Do_move();
 
-        string get_name();
+        string Get_name();
     }
 }

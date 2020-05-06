@@ -1,79 +1,74 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace XoGame
+﻿namespace XoGame
 {
-    class Game
+    internal class Game
     {
-        private IPlayer playerX, playerO, nextMoves;
-        private Board board;
+        private readonly IPlayer _playerX;
+        private readonly IPlayer _playerO;
+        private IPlayer _nextMoves;
+        private readonly Board _board;
 
-        public Game(IPlayer x, IPlayer o, Board given_board)
+        public Game(IPlayer x, IPlayer o, Board givenBoard)
         {
-            board = given_board;
-            playerX = x;
-            playerO = o;
-            nextMoves = x;
+            _board = givenBoard;
+            _playerX = x;
+            _playerO = o;
+            _nextMoves = x;
         }
 
-        public Move step()
+        public Move Step()
         {
-            IPlayer nowMoves;
+            var move = impossible_move();
+            var nowMoves = _nextMoves == _playerX ? _playerX : _playerO;
 
-            if (nextMoves == playerX) {
-                nowMoves = playerX;
-                //nextMoves = playerO;
-            } else {
-                nowMoves = playerO;
-                //nextMoves = playerX;
-            }
-
-            var move = nowMoves.do_move();
-            if (!board.make_move(move, nowMoves))
+            if (nowMoves != null)
             {
-                move = Game.impossible_move();
+                move = nowMoves.Do_move();
+            }
+            if (_board != null && !_board.Make_move(move, nowMoves))
+            {
+                move = impossible_move();
             }
             else
             {
-                if (nextMoves == playerX)
-                {
-                    nextMoves = playerO;
-                }
-                else
-                {
-                    nextMoves = playerX;
-                }
+                _nextMoves = _nextMoves == _playerX ? _playerO : _playerX;
             }
 
             return move;
-            // TODO
         }
 
         public static Move impossible_move()
         {
-            return new Move { x = -111, y = -111 };
+            return new Move { X = -111, Y = -111 };
         }
 
-        public bool finished()
+        public bool Finished()
         {
-            if (hasWinner())
+            if (HasWinner())
             {
                 return true;
             }
-            return this.board.no_more_moves();
+            var board = this._board;
+            return board != null && board.no_more_moves();
         }
 
-        public string winner()
+        public string Winner()
         {
-            return board.winner();
+            var result = "";
+            if (_board!=null)
+            {
+                result = _board.Winner();
+            }
+            return result;
         }
 
-        public bool hasWinner()
+        public bool HasWinner()
         {
-            return !board.winner().Equals("");
+            var winner = "";
+            if (_board != null)
+            {
+                winner = _board.Winner();
+            }
+            return winner != null && !winner.Equals("");
         }
 
     }

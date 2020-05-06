@@ -1,142 +1,122 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-//using System.Collections;
+﻿using System.Collections.Generic;
 
 namespace XoGame
 {
-    class Board
+    internal class Board
     {
-        int width;
-        int height;
-        int moves_left;
-
-        //Hashtable moves;
-        Dictionary<Move, string> moves;
-            /*dictionary =
-            new Dictionary<string, int>();*/
+        private int _movesLeft;
+        
+        private readonly Dictionary<Move, string> _moves;
 
         public Board(int width, int height)
         {
-            this.width = width;
-            this.height = height;
-            this.moves = new Dictionary<Move, string>(); //Hashtable();
-            this.moves_left = width * height;
+            this._moves = new Dictionary<Move, string>();
+            this._movesLeft = width * height;
 
         }
 
-        public bool make_move(Move move, IPlayer player)
+        public bool Make_move(Move move, IPlayer player)
         {
-            bool can_do = can_move(move);
+            var canDo = can_move(move);
 
-            if (can_do)
+            if (canDo && _moves != null && player != null)
             {
-                moves[move] = player.get_name();
-                this.moves_left = this.moves_left - 1;
-                // update hash
+                _moves[move] = player.Get_name();
+                this._movesLeft = this._movesLeft - 1;
             }
-/*            else
-            {
-            }*/
-            return can_do;
+            return canDo;
         }
 
-        public bool can_move(Move move)
+        private bool can_move(Move move)
         {
-            return !moves.ContainsKey(move);
+            return _moves != null && !_moves.ContainsKey(move);
         }
 
         public bool no_more_moves()
         {
-            return this.moves_left == 0;
+            return this._movesLeft == 0;
         }
 
-        public string winner()
+        public string Winner()
         {
-            var x0y0 = new Move{ x = 0, y = 0 };
-            var x1y0 = new Move{ x = 1, y = 0 };
-            var x2y0 = new Move{ x = 2, y = 0 };
+            var x0Y0 = new Move{ X = 0, Y = 0 };
+            var x1Y0 = new Move{ X = 1, Y = 0 };
+            var x2Y0 = new Move{ X = 2, Y = 0 };
             
-            var x0y1 = new Move{ x = 0, y = 1 };
-            var x1y1 = new Move{ x = 1, y = 1 };
-            var x2y1 = new Move{ x = 2, y = 1 };
+            var x0Y1 = new Move{ X = 0, Y = 1 };
+            var x1Y1 = new Move{ X = 1, Y = 1 };
+            var x2Y1 = new Move{ X = 2, Y = 1 };
 
-            var x0y2 = new Move{ x = 0, y = 2 };
-            var x1y2 = new Move{ x = 1, y = 2 };
-            var x2y2 = new Move{ x = 2, y = 2 };
+            var x0Y2 = new Move{ X = 0, Y = 2 };
+            var x1Y2 = new Move{ X = 1, Y = 2 };
+            var x2Y2 = new Move{ X = 2, Y = 2 };
 
 
-            string winner = "";
-            bool gotWinner = false;
-
-            // клонки:
-
-            winner = WinnerByRows(x0y0, x0y1, x0y2, out gotWinner);
+            var winner = WinnerByRows(x0Y0, x0Y1, x0Y2, out var gotWinner);
             if (gotWinner) {
                 return winner;
             }
-            winner = WinnerByRows(x1y0, x1y1, x1y2, out gotWinner);
+            winner = WinnerByRows(x1Y0, x1Y1, x1Y2, out gotWinner);
             if (gotWinner)
             {
                 return winner;
             }
-            winner = WinnerByRows(x2y0, x2y1, x2y2, out gotWinner);
+            winner = WinnerByRows(x2Y0, x2Y1, x2Y2, out gotWinner);
+            if (gotWinner)
+            {
+                return winner;
+            }
+            
+
+            winner = WinnerByRows(x0Y0, x1Y0, x2Y0, out gotWinner);
+            if (gotWinner)
+            {
+                return winner;
+            }
+            winner = WinnerByRows(x0Y1, x1Y1, x2Y1, out gotWinner);
+            if (gotWinner)
+            {
+                return winner;
+            }
+            winner = WinnerByRows(x0Y2, x1Y2, x2Y2, out gotWinner);
+            if (gotWinner)
+            {
+                return winner;
+            }
+            
+
+            winner = WinnerByRows(x0Y0, x1Y1, x2Y2, out gotWinner);
+            if (gotWinner)
+            {
+                return winner;
+            }
+            winner = WinnerByRows(x2Y0, x1Y1, x0Y2, out gotWinner);
             if (gotWinner)
             {
                 return winner;
             }
 
-            // ряды:
-
-            winner = WinnerByRows(x0y0, x1y0, x2y0, out gotWinner);
-            if (gotWinner)
-            {
-                return winner;
-            }
-            winner = WinnerByRows(x0y1, x1y1, x2y1, out gotWinner);
-            if (gotWinner)
-            {
-                return winner;
-            }
-            winner = WinnerByRows(x0y2, x1y2, x2y2, out gotWinner);
-            if (gotWinner)
-            {
-                return winner;
-            }
-
-            // диагонали
-
-            winner = WinnerByRows(x0y0, x1y1, x2y2, out gotWinner);
-            if (gotWinner)
-            {
-                return winner;
-            }
-            winner = WinnerByRows(x2y0, x1y1, x0y2, out gotWinner);
-            if (gotWinner)
-            {
-                return winner;
-            }
-
-            return ""; // mo winner...
+            return "";
         }
 
         private string WinnerByRows(Move a, Move b, Move c, out bool gotWinner)
         {
-            if (moves.ContainsKey(a) && moves.ContainsKey(b) && moves.ContainsKey(c))
+            if (_moves != null 
+                && (_moves.ContainsKey(a) 
+                && _moves.ContainsKey(b) 
+                && _moves.ContainsKey(c)))
             {
-                var aa = moves[a];
-                var bb = moves[b];
-                var cc = moves[c];
+                var aa = _moves[a];
+                var bb = _moves[b];
+                var cc = _moves[c];
 
-                var aa_bb = aa.Equals(bb);
-                var aa_cc = aa.Equals(cc);
+                var aaBb = aa != null && aa.Equals(bb);
+                var aaCc = aa != null && aa.Equals(cc);
 
-                if (aa_bb && aa_cc)
+                if (aaBb && aaCc)
                 {
                     gotWinner = true;
-                    return moves[a];
+                    return _moves[a];
                 }
             }
             gotWinner = false;
@@ -145,18 +125,3 @@ namespace XoGame
 
     }
 }
-
-
-/*
- * using System;
-using System.Collections;
-
-class Program
-{
-    static void Main()
-    {
-	Hashtable hashtable = new Hashtable();
-	hashtable[1] = "One";
-	hashtable[2] = "Two";
-	hashtable[13] = "Thirteen";
-*/

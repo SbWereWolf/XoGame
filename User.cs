@@ -1,38 +1,29 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace XoGame
+﻿namespace XoGame
 {
-    class User : IPlayer
+    internal class User : IPlayer
     {
+        private Move _chosenMove;
 
-        Move chosenMove;
-
-        // duplicated in User and RandomUI since I'm not a fan of superclasses and know no other way yet
-        public string name;
+        private readonly string _name;
 
         public User (string name)
         {
-            this.name = name;
+            this._name = name;
         }
-        // duplicated in User and RandomUI since I'm not a fan of superclasses and know no other way yet
 
-        public string get_name()
+        public string Get_name()
         {
-            return name;
+            return _name;
         }
 
         public void move_is(Move move)
         {
-            chosenMove = move;
+            _chosenMove = move;
         }
 
-        public Move do_move()
+        public Move Do_move()
         {
-            return chosenMove;
+            return _chosenMove;
         }
     }
 }

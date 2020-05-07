@@ -4,7 +4,6 @@ using System.Globalization;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using JetBrains.Annotations;
 
 namespace XoGame
 {
@@ -13,13 +12,13 @@ namespace XoGame
     /// </summary>
     public partial class MainWindow
     {
-        [NotNull] private readonly Game _game;
-        [NotNull] private readonly Board _board;
-        [NotNull] private Turn[] _comands;
+         private readonly Game _game;
+         private readonly Board _board;
+         private Turn[] _comands;
 
-        [NotNull] private readonly Painter _painter;
-        [NotNull] private readonly Button[] _cells;
-        [NotNull] private Paint[] _paints;
+         private readonly Painter _painter;
+         private readonly Button[] _cells;
+         private Paint[] _paints;
 
         private const int NoIndex = -1;
         private int _current = NoIndex;

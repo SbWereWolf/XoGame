@@ -1,15 +1,14 @@
 ﻿using System;
 using System.Globalization;
 using System.Windows.Controls;
-using JetBrains.Annotations;
 
 namespace XoGame
 {
     class Paint
     {
         private readonly int _tag = -1;
-        [NotNull] private readonly Button[] _canvas;
-        [NotNull] private readonly string _mark;
+         private readonly Button[] _canvas;
+         private readonly string _mark;
 
         public Paint(Button[] cells, Tuple<int, int> cell, string mark)
         {

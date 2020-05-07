@@ -1,16 +1,15 @@
-﻿using System;
-using System.Globalization;
-using System.Windows.Controls;
+﻿using System.Windows.Controls;
+using JetBrains.Annotations;
 
 namespace XoGame
 {
     class Paint
     {
-        private readonly int _tag = -1;
-        private readonly Button[] _canvas;
-        private readonly string _mark;
+        private readonly int _tag;
+        [NotNull] private readonly Button[] _canvas;
+        [NotNull] private readonly string _mark;
 
-        public Paint(Button[] cells, Tuple<int, int> cell, string mark)
+        public Paint(Button[] cells, int tag, string mark)
         {
             _canvas = new Button[] { };
             if (cells != null)
@@ -24,10 +23,7 @@ namespace XoGame
                 _mark = mark;
             }
 
-            if (cell != null)
-            {
-                _tag = cell.Item1 + cell.Item2 * 10;
-            }
+            _tag = tag;
         }
 
         private Button Find()
@@ -35,8 +31,13 @@ namespace XoGame
             Button result = null;
             foreach (var button in _canvas)
             {
-                var key = -1;
-                var isSuccess = button?.Tag != null && (int.TryParse(button.Tag.ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out key));
+                var key = 0;
+                var isSuccess = false;
+                if (button?.Tag != null)
+                {
+                    key = (int)button.Tag;
+                    isSuccess = true;
+                }
                 if (isSuccess && key == _tag)
                 {
                     result = button;

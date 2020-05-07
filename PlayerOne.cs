@@ -2,16 +2,15 @@
 {
     internal class PlayerOne
     {
-        public readonly string Mark;
+        private readonly string _mark;
         public PlayerOne(string marker)
         {
-            this.Mark = marker;
+            this._mark = marker;
         }
 
         public string GetTitle()
         {
-            return Mark;
+            return _mark;
         }
-
     }
 }

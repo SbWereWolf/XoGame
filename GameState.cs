@@ -1,6 +1,6 @@
 ﻿namespace XoGame
 {
-    enum GameState
+    internal enum GameState
     {
         Draw, Win, InProcess
     }

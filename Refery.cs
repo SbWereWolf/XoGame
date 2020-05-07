@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using JetBrains.Annotations;
 
 namespace XoGame
 {
-    internal class Refery
+    internal class Refery : IRefery
     {
-        private readonly Dictionary<Tuple<int, int>, int> _map;
-        private readonly Tuple<int, int>[] _vectors;
+        [NotNull] private readonly Dictionary<Tuple<int, int>, int> _map;
+        [NotNull] private readonly Tuple<int, int>[] _vectors;
 
         public Refery(Dictionary<Tuple<int, int>, int> map)
         {
@@ -21,7 +22,7 @@ namespace XoGame
                 new Tuple<int, int>(0, 1),
                 new Tuple<int, int>(1, 1),
                 new Tuple<int, int>(1, 0),
-                new Tuple<int, int>(1, -1),
+                new Tuple<int, int>(1, -1)
             };
         }
 
@@ -70,6 +71,7 @@ namespace XoGame
         }
 
 
+        [NotNull]
         private static Tuple<int, int> Forward(Tuple<int, int> cell, Tuple<int, int> vector)
         {
             var result = new Tuple<int, int>(int.MinValue, int.MinValue);
@@ -84,6 +86,7 @@ namespace XoGame
         }
 
 
+        [NotNull]
         private static Tuple<int, int> Backward(Tuple<int, int> cell, Tuple<int, int> vector)
         {
             var result = new Tuple<int, int>(int.MinValue, int.MinValue);

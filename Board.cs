@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using JetBrains.Annotations;
 
 namespace XoGame
 {
@@ -8,12 +9,12 @@ namespace XoGame
         private readonly int _playeX;
         private readonly int _player0;
         private readonly ReferyFactory _factory;
-        private readonly Dictionary<Tuple<int, int>, int> _mapX;
-        private readonly Dictionary<Tuple<int, int>, int> _map0;
+        [NotNull] private readonly Dictionary<Tuple<int, int>, int> _mapX;
+        [NotNull] private readonly Dictionary<Tuple<int, int>, int> _map0;
 
         public Board(ReferyFactory factory)
         {
-            _playeX = 10; // X
+            _playeX = 10; // roman ten is "X"
             _player0 = 0;
             _factory = factory;
 
@@ -48,7 +49,7 @@ namespace XoGame
 
         public bool Purge(Tuple<int, int> cell)
         {
-            var isContains = cell != null && (_mapX != null && _mapX.ContainsKey(cell));
+            var isContains = cell != null && (_mapX.ContainsKey(cell));
             var wasRemove = false;
             if (isContains)
             {
@@ -57,7 +58,7 @@ namespace XoGame
             }
             if (!wasRemove)
             {
-                if (_map0 != null) if (cell != null) isContains = _map0.ContainsKey(cell);
+                if (cell != null) isContains = _map0.ContainsKey(cell);
             }
             if (!wasRemove && isContains)
             {
@@ -70,8 +71,8 @@ namespace XoGame
 
         public bool IsFatality(Tuple<int, int> cell)
         {
-            var checkX = cell != null && _mapX != null && _mapX.ContainsKey(cell);
-            Refery refery = null;
+            var checkX = cell != null && _mapX.ContainsKey(cell);
+            IRefery refery = null;
             if (checkX && _factory != null)
             {
                 refery = _factory.Make(_mapX);
@@ -112,7 +113,7 @@ namespace XoGame
             var has = false;
             if (key != null)
             {
-                has = _map0 != null && _mapX != null && (_mapX.ContainsKey(key) || _map0.ContainsKey(key));
+                has = (_mapX.ContainsKey(key) || _map0.ContainsKey(key));
             }
 
             return !has;

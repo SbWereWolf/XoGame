@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using JetBrains.Annotations;
 
 namespace XoGame
 {
@@ -7,7 +8,8 @@ namespace XoGame
     {
 
 
-        public Refery Make(Dictionary<Tuple<int, int>, int> map)
+        [NotNull]
+        public IRefery Make(Dictionary<Tuple<int, int>, int> map)
         {
             return new Refery(map);
         }

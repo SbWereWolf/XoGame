@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using JetBrains.Annotations;
 
 namespace XoGame
 {
@@ -12,17 +12,19 @@ namespace XoGame
     /// </summary>
     public partial class MainWindow
     {
-        private readonly Game _game;
-        private readonly Board _board;
+        [NotNull] private readonly Game _game;
+        [NotNull] private readonly Board _board;
         private Turn[] _comands;
+        [NotNull] private readonly TurnFactory _turnFactory;
 
-        private readonly Painter _painter;
-        private readonly Button[] _cells;
+        [NotNull] private readonly Painter _painter;
+        [NotNull] private readonly Button[] _cells;
         private Paint[] _paints;
+        private const int PositionBase = 10;
+        [NotNull] private readonly PaintFactory _paintFactory;
 
         private const int NoIndex = -1;
         private int _current = NoIndex;
-        private const int Factorization = 10;
 
         public MainWindow()
         {
@@ -36,10 +38,28 @@ namespace XoGame
             _comands = new Turn[] { };
             _paints = new Paint[] { };
 
+            var factorization = new Factorization(PositionBase);
+            _paintFactory = new PaintFactory();
+            _turnFactory = new TurnFactory(factorization);
+
+
             _cells = new[]
             {
                 C00,C01,C02,C10,C11,C12,C20,C21,C22
             };
+            if (C00 != null && C01 != null && C02 != null && C10 != null
+                && C11 != null && C12 != null && C20 != null && C21 != null && C22 != null)
+            {
+                C00.Tag = factorization.Encode(new Tuple<int, int>(0, 0));
+                C01.Tag = factorization.Encode(new Tuple<int, int>(0, 1));
+                C02.Tag = factorization.Encode(new Tuple<int, int>(0, 2));
+                C10.Tag = factorization.Encode(new Tuple<int, int>(1, 0));
+                C11.Tag = factorization.Encode(new Tuple<int, int>(1, 1));
+                C12.Tag = factorization.Encode(new Tuple<int, int>(1, 2));
+                C20.Tag = factorization.Encode(new Tuple<int, int>(2, 0));
+                C21.Tag = factorization.Encode(new Tuple<int, int>(2, 1));
+                C22.Tag = factorization.Encode(new Tuple<int, int>(2, 2));
+            }
             _painter = new Painter();
         }
 
@@ -54,29 +74,33 @@ namespace XoGame
         {
             var theButton = (Button)sender;
             var key = 0;
-            var isSuccess = theButton?.Tag != null
-                && int.TryParse(theButton.Tag.ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out key);
+            var isSuccess = false;
+            if (theButton?.Tag != null)
+            {
+                key = (int)theButton.Tag;
+                isSuccess = true;
+            }
             if (!isSuccess)
+            {
                 MessageBox.Show("Fail parse cell number");
+            }
 
             var player = _game.GetActivePlayer();
             Turn turn = null;
-            var cell = new Tuple<int, int>(NoIndex, NoIndex);
+
+            var isComplete = false;
             if (isSuccess)
             {
-                var x = key % Factorization;
-                var y = key / Factorization;
-                cell = new Tuple<int, int>(x, y);
-                turn = new Turn(_board, cell);
-                isSuccess = _game.Apply(turn);
+                turn = _turnFactory.Make(_board, key);
+                isComplete = _game.Apply(turn);
             }
-            if (!isSuccess)
+            if (!isComplete)
             {
                 MessageBox.Show("Не верный ход");
             }
-            if (isSuccess)
+            if (isComplete)
             {
-                var paint = new Paint(_cells, cell, player);
+                var paint = _paintFactory.Make(_cells, key, player);
                 _painter.Paint(paint);
                 ShowActivePlayer();
 
@@ -86,9 +110,12 @@ namespace XoGame
                 TakePaints(_current);
                 AddPaint(paint);
 
-                _current = _comands.GetUpperBound(0);
+                if (_comands != null)
+                {
+                    _current = _comands.GetUpperBound(0);
+                }
             }
-            if (isSuccess)
+            if (isComplete)
             {
                 ShowWinner(player);
             }
@@ -110,36 +137,48 @@ namespace XoGame
 
         private void TakePaints(int upperBound)
         {
-            var list = new List<Paint>();
-            for (var i = 0; i <= upperBound; i++)
-                list.Add(_paints[i]);
-            _paints = list.ToArray();
+            if (_paints != null)
+            {
+                var list = new List<Paint>();
+                for (var i = 0; i <= upperBound; i++)
+                    list.Add(_paints[i]);
+                _paints = list.ToArray();
+            }
         }
         private void TakeTurns(int upperBound)
         {
-            var list = new List<Turn>();
-            for (var i = 0; i <= upperBound; i++)
-                list.Add(_comands[i]);
-            _comands = list.ToArray();
+            if (_comands != null)
+            {
+                var list = new List<Turn>();
+                for (var i = 0; i <= upperBound; i++)
+                    list.Add(_comands[i]);
+                _comands = list.ToArray();
+            }
         }
 
         private void AddTurn(Turn turn)
         {
-            var list = _comands.ToList();
-            list.Add(turn);
-            _comands = list.ToArray();
+            if (_comands != null)
+            {
+                var list = _comands.ToList();
+                list.Add(turn);
+                _comands = list.ToArray();
+            }
         }
         private void AddPaint(Paint paint)
         {
-            var list = _paints.ToList();
-            list.Add(paint);
-            _paints = list.ToArray();
+            if (_paints != null)
+            {
+                var list = _paints.ToList();
+                list.Add(paint);
+                _paints = list.ToArray();
+            }
         }
 
         private void Undo_Click(object sender, RoutedEventArgs e)
         {
             var may = _current > NoIndex;
-            if (may)
+            if (may && _comands != null && _paints != null)
             {
                 var action = _comands[_current];
                 _game.Reverse(action);
@@ -151,7 +190,7 @@ namespace XoGame
 
         private void Redo_Click(object sender, RoutedEventArgs e)
         {
-            var may = _comands.GetUpperBound(0) > _current;
+            var may = _comands != null && _comands.GetUpperBound(0) > _current;
             var isSuccess = false;
             var player = string.Empty;
             if (may)
@@ -160,7 +199,7 @@ namespace XoGame
                 var next = _current + 1;
                 isSuccess = _game.Apply(_comands[next]);
             }
-            if (isSuccess)
+            if (isSuccess && _paints != null)
             {
                 _current++;
                 _painter.Paint(_paints[_current]);

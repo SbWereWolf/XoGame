@@ -2,74 +2,112 @@
 {
     internal class Game
     {
-        private readonly IPlayer _playerX;
-        private readonly IPlayer _playerO;
-        private IPlayer _nextMoves;
-        private readonly Board _board;
+        private PlayerOne _activePlayer;
+        private readonly PlayerOne _playerX;
+        private readonly PlayerOne _player0;
+        private GameState _state = GameState.InProcess;
 
-        public Game(IPlayer x, IPlayer o, Board givenBoard)
+        public Game(string player1, string player2)
         {
-            _board = givenBoard;
-            _playerX = x;
-            _playerO = o;
-            _nextMoves = x;
+            _playerX = new PlayerOne(player1);
+            _player0 = new PlayerOne(player2);
+            _activePlayer = _playerX;
         }
 
-        public Move Step()
+        public bool Apply(Turn turn)
         {
-            var move = impossible_move();
-            var nowMoves = _nextMoves == _playerX ? _playerX : _playerO;
+            var may = turn != null && IsInProcess();
+            var complete = false;
+            if (may && _activePlayer == _playerX)
+            {
+                complete =  turn.RedoX();
+            }
+            if (may && _activePlayer != _playerX)
+            {
+                complete = turn.Redo0();
+            }
+            if (complete)
+            {
+                CalculateState(turn);
+            }
+            
 
-            if (nowMoves != null)
-            {
-                move = nowMoves.Do_move();
-            }
-            if (_board != null && !_board.Make_move(move, nowMoves))
-            {
-                move = impossible_move();
-            }
-            else
-            {
-                _nextMoves = _nextMoves == _playerX ? _playerO : _playerX;
-            }
-
-            return move;
+            return may;
         }
 
-        public static Move impossible_move()
+        private void CalculateState(Turn turn)
         {
-            return new Move { X = -111, Y = -111 };
-        }
-
-        public bool Finished()
-        {
-            if (HasWinner())
+            var isWin = false;
+            var isDraw = false;
+            if (turn != null)
             {
-                return true;
+                isWin = turn.IsWin();
+                isDraw = turn.IsDraw();
             }
-            var board = this._board;
-            return board != null && board.no_more_moves();
+            var isInProcess = IsInProcess();
+            if (isInProcess)
+            {
+                PassTurnToOtherPlayer();
+            }
+            if (isWin)
+            {
+                _state = GameState.Win;
+            }
+            if (!isWin && isDraw)
+            {
+                _state = GameState.Draw;
+            }
         }
 
-        public string Winner()
+        private void PassTurnToOtherPlayer()
         {
-            var result = "";
-            if (_board!=null)
+            var isX = _activePlayer == _playerX;
+            if (isX)
             {
-                result = _board.Winner();
+                _activePlayer = _player0;
+            }
+            if (!isX)
+            {
+                _activePlayer = _playerX;
+            }
+        }
+
+        private bool IsInProcess()
+        {
+            return _state == GameState.InProcess;
+        }
+
+        public bool IsWin()
+        {
+            return _state == GameState.Win;
+        }
+
+        public bool IsDraw()
+        {
+            return _state == GameState.Draw;
+        }
+
+        public void Reverse(Turn turn)
+        {
+            var result = turn != null && turn.Undo();
+            if (result && !IsInProcess())
+            {
+                _state = GameState.InProcess;
+            }
+            if (result)
+            {
+                PassTurnToOtherPlayer();
+            }
+        }
+
+        public string GetActivePlayer()
+        {
+            var result = string.Empty;
+            if (_activePlayer != null)
+            {
+                result = _activePlayer.GetTitle();
             }
             return result;
         }
-
-        public bool HasWinner()
-        {
-            var winner = "";
-            if (_board != null)
-            {
-                winner = _board.Winner();
-            }
-            return winner != null && !winner.Equals("");
-        }
-
     }
 }

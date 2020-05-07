@@ -1,127 +1,121 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace XoGame
 {
     internal class Board
     {
-        private int _movesLeft;
-        
-        private readonly Dictionary<Move, string> _moves;
+        private readonly int _playeX;
+        private readonly int _player0;
+        private readonly ReferyFactory _factory;
+        private readonly Dictionary<Tuple<int, int>, int> _mapX;
+        private readonly Dictionary<Tuple<int, int>, int> _map0;
 
-        public Board(int width, int height)
+        public Board(ReferyFactory factory)
         {
-            this._moves = new Dictionary<Move, string>();
-            this._movesLeft = width * height;
+            _playeX = 10; // X
+            _player0 = 0;
+            _factory = factory;
 
+            _mapX = new Dictionary<Tuple<int, int>, int>();
+            _map0 = new Dictionary<Tuple<int, int>, int>();
         }
 
-        public bool Make_move(Move move, IPlayer player)
+        public bool MarkX(Tuple<int, int> cell)
         {
-            var canDo = can_move(move);
-
-            if (canDo && _moves != null && player != null)
+            var may = IsEmpty(cell);
+            var result = false;
+            if (may)
             {
-                _moves[move] = player.Get_name();
-                this._movesLeft = this._movesLeft - 1;
+                Mount(cell, _mapX, _playeX);
+                result = true;
             }
-            return canDo;
+
+            return result;
+        }
+        public bool Mark0(Tuple<int, int> cell)
+        {
+            var may = IsEmpty(cell);
+            var result = false;
+            if (may)
+            {
+                Mount(cell, _map0, _player0);
+                result = true;
+            }
+
+            return result;
         }
 
-        private bool can_move(Move move)
+        public bool Purge(Tuple<int, int> cell)
         {
-            return _moves != null && !_moves.ContainsKey(move);
+            var isContains = cell != null && (_mapX != null && _mapX.ContainsKey(cell));
+            var wasRemove = false;
+            if (isContains)
+            {
+                _mapX.Remove(cell);
+                wasRemove = true;
+            }
+            if (!wasRemove)
+            {
+                if (_map0 != null) if (cell != null) isContains = _map0.ContainsKey(cell);
+            }
+            if (!wasRemove && isContains)
+            {
+                _map0.Remove(cell);
+                wasRemove = true;
+            }
+
+            return wasRemove;
         }
 
-        public bool no_more_moves()
+        public bool IsFatality(Tuple<int, int> cell)
         {
-            return this._movesLeft == 0;
+            var checkX = cell != null && _mapX != null && _mapX.ContainsKey(cell);
+            Refery refery = null;
+            if (checkX && _factory != null)
+            {
+                refery = _factory.Make(_mapX);
+            }
+            if (!checkX && _factory != null && cell != null)
+            {
+                refery = _factory.Make(_map0);
+            }
+
+            var result = refery != null && refery.IsWin(cell);
+
+            return result;
         }
 
-        public string Winner()
+        public bool IsDraw()
         {
-            var x0Y0 = new Move{ X = 0, Y = 0 };
-            var x1Y0 = new Move{ X = 1, Y = 0 };
-            var x2Y0 = new Move{ X = 2, Y = 0 };
+            var result = false;
+            if (_factory != null)
+            {
+                var refery = _factory.Make(_mapX);
+                result = refery.IsDraw(_map0);
+            }
+
+            return result;
+        }
+
+        private static void Mount(Tuple<int, int> key, IDictionary<Tuple<int, int>, int> map, int mark)
+        {
+            if (key != null)
+            {
+                map?.Add(key, mark);
+            }
             
-            var x0Y1 = new Move{ X = 0, Y = 1 };
-            var x1Y1 = new Move{ X = 1, Y = 1 };
-            var x2Y1 = new Move{ X = 2, Y = 1 };
-
-            var x0Y2 = new Move{ X = 0, Y = 2 };
-            var x1Y2 = new Move{ X = 1, Y = 2 };
-            var x2Y2 = new Move{ X = 2, Y = 2 };
-
-
-            var winner = WinnerByRows(x0Y0, x0Y1, x0Y2, out var gotWinner);
-            if (gotWinner) {
-                return winner;
-            }
-            winner = WinnerByRows(x1Y0, x1Y1, x1Y2, out gotWinner);
-            if (gotWinner)
-            {
-                return winner;
-            }
-            winner = WinnerByRows(x2Y0, x2Y1, x2Y2, out gotWinner);
-            if (gotWinner)
-            {
-                return winner;
-            }
-            
-
-            winner = WinnerByRows(x0Y0, x1Y0, x2Y0, out gotWinner);
-            if (gotWinner)
-            {
-                return winner;
-            }
-            winner = WinnerByRows(x0Y1, x1Y1, x2Y1, out gotWinner);
-            if (gotWinner)
-            {
-                return winner;
-            }
-            winner = WinnerByRows(x0Y2, x1Y2, x2Y2, out gotWinner);
-            if (gotWinner)
-            {
-                return winner;
-            }
-            
-
-            winner = WinnerByRows(x0Y0, x1Y1, x2Y2, out gotWinner);
-            if (gotWinner)
-            {
-                return winner;
-            }
-            winner = WinnerByRows(x2Y0, x1Y1, x0Y2, out gotWinner);
-            if (gotWinner)
-            {
-                return winner;
-            }
-
-            return "";
         }
 
-        private string WinnerByRows(Move a, Move b, Move c, out bool gotWinner)
+        private bool IsEmpty(Tuple<int, int> key)
         {
-            if (_moves != null 
-                && (_moves.ContainsKey(a) 
-                && _moves.ContainsKey(b) 
-                && _moves.ContainsKey(c)))
+            var has = false;
+            if (key!= null)
             {
-                var aa = _moves[a];
-                var bb = _moves[b];
-                var cc = _moves[c];
-
-                var aaBb = aa != null && aa.Equals(bb);
-                var aaCc = aa != null && aa.Equals(cc);
-
-                if (aaBb && aaCc)
-                {
-                    gotWinner = true;
-                    return _moves[a];
-                }
+                has = _map0 != null && _mapX != null && (_mapX.ContainsKey(key) || _map0.ContainsKey(key));
             }
-            gotWinner = false;
-            return "";
-        }
 
+            return !has;
+        }
     }
 }

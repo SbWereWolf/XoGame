@@ -1,137 +1,173 @@
-﻿using System.Windows;
+﻿using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System.Windows;
 using System.Windows.Controls;
+using JetBrains.Annotations;
 
 namespace XoGame
 {
-
-    public struct Move
-    {
-        public int X;
-        public int Y;
-    }
-
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
     public partial class MainWindow
     {
-        private const string TitlePrefix = "Крестики-нолики";
-        private const string NoOneWon = "ничья";
+        [NotNull] private readonly Game _game;
+        [NotNull] private readonly Board _board;
+        [NotNull] private Turn[] _comands;
 
-        private const string TheWinnerIs = "победил:";
+        [NotNull] private readonly Painter _painter;
+        [NotNull] private readonly Button[] _cells;
+        [NotNull] private Paint[] _paints;
 
-        private readonly Game _game;
-
-        private readonly User _user;
+        private const int NoIndex = -1;
+        private int _current = NoIndex;
+        private const int Factorization = 10;
 
         public MainWindow()
         {
             InitializeComponent();
 
-            _user = new User("игрок");
-            var opponent = new RandomAi("комп");
-            var board = new Board(width: 3, height: 3);
-            _game = new Game(x: _user, o: opponent, givenBoard: board);
+            _game = new Game("X", "0");
+
+            ShowActivePlayer();
+
+            _board = new Board(new ReferyFactory());
+            _comands = new Turn[] { };
+            _paints = new Paint[] { };
+
+            _cells = new[]
+            {
+                C00,C01,C02,C10,C11,C12,C20,C21,C22
+            };
+            _painter = new Painter();
         }
 
-        private void MoveButton_Click(object sender, RoutedEventArgs e)
+        private void ShowActivePlayer()
         {
-            if (_game == null)
-            {
-                return;
-            }
+            var title = _game.GetActivePlayer();
+            if (TurnIndicator != null)
+                TurnIndicator.Content = title;
+        }
 
-            if (_game.Finished())
-            {
-                return;
-            }
-
+        private void Cell_Click(object sender, RoutedEventArgs e)
+        {
             var theButton = (Button)sender;
-            var move = ButtonToMove(theButton);
-            _user?.move_is(move);
-            var playerMove = _game.Step();
+            var key = 0;
+            var isSuccess = theButton?.Tag != null && int.TryParse(theButton.Tag.ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out key);
+            if (!isSuccess)
+                MessageBox.Show("Fail parse cell number");
 
-            if (!playerMove.Equals(Game.impossible_move()))
+            var player = _game.GetActivePlayer();
+            Turn turn = null;
+            var cell = new Tuple<int, int>(NoIndex, NoIndex);
+            if (isSuccess)
             {
-                MoveMade(move, "X");
+                var x = key % Factorization;
+                var y = key / Factorization;
+                cell = new Tuple<int, int>(x, y);
+                turn = new Turn(_board, cell);
+                isSuccess = _game.Apply(turn);
+            }
+            if (!isSuccess)
+                MessageBox.Show("Не верный ход");
+            if (isSuccess)
+            {
+                theButton.Content = player;
+                ShowActivePlayer();
 
-                if (_game != null && _game.Finished()) {
-                    Finish();
-                    return;
-                }
+                TakeTurns(_current);
+                AddTurn(turn);
 
-                if (_game != null)
-                {
-                    Move opponentMove;
-                    do
-                    {
-                        opponentMove = _game.Step();
-                    } while (opponentMove.Equals(Game.impossible_move()));
+                var paint = new Paint(_cells, cell, player);
+                TakePaints(_current);
+                AddPaint(paint);
 
-                    MoveMade(opponentMove, "0");
-
-                    if (_game != null && _game.Finished())
-                    {
-                        Finish();
-                    }
-                }
-
+                _current = _comands.GetUpperBound(0);
+            }
+            if (isSuccess)
+            {
+                ShowWinner(player);
             }
         }
 
-        private void MoveMade(Move move, string what)
+        private void ShowWinner(string mark)
         {
-            var button = MoveToButton(move);
-            if (button != null) button.Content = what;
-        }
-
-        private void Finish()
-        {
-            if (_game != null && _game.HasWinner())
+            var isWin = _game.IsWin();
+            var isDraw = _game.IsDraw();
+            if (isWin)
             {
-                this.Title = TitlePrefix + ": " + TheWinnerIs + " " + _game.Winner();
+                MessageBox.Show($"Победитель {mark}");
             }
-            else
+            if (isDraw)
             {
-                this.Title = TitlePrefix + ": " + NoOneWon;
+                MessageBox.Show("Ничья");
             }
         }
-        
-        private const string ButtonPrefix = "At";
 
-        private const int Xpos = 2;
-        private const int Ypos = 3;
-
-
-        private Button MoveToButton(Move move)
+        private void TakePaints(int upperBound)
         {
-            return (Button)this.FindName(ButtonPrefix + move.X.ToString() + move.Y.ToString());
+            var list = new List<Paint>();
+            for (var i = 0; i <= upperBound; i++)
+                list.Add(_paints[i]);
+            _paints = list.ToArray();
         }
-                
-        private static Move ButtonToMove(Button button)
+        private void TakeTurns(int upperBound)
         {
-            return new Move { X = ButtonX(button), Y = ButtonY(button) };
-        }
-
-        
-        private static int ButtonX(Button button)
-        {
-            var result = -1;
-            var name = button?.Name;
-
-            if (name != null) result = int.Parse(name[Xpos].ToString());
-
-            return result;
+            var list = new List<Turn>();
+            for (var i = 0; i <= upperBound; i++)
+                list.Add(_comands[i]);
+            _comands = list.ToArray();
         }
 
-        private static int ButtonY(Button button)
+        private void AddTurn(Turn turn)
         {
-            var result = -1;
+            var list = _comands.ToList();
+            list.Add(turn);
+            _comands = list.ToArray();
+        }
+        private void AddPaint(Paint paint)
+        {
+            var list = _paints.ToList();
+            list.Add(paint);
+            _paints = list.ToArray();
+        }
 
-            var name = button?.Name;
+        private void Undo_Click(object sender, RoutedEventArgs e)
+        {
+            var may = _current > NoIndex;
+            if (may)
+            {
+                var action = _comands[_current];
+                _game.Reverse(action);
+                _painter.Purge(_paints[_current]);
+                _current--;
+                ShowActivePlayer();
+            }
+        }
 
-            if (name != null) result = int.Parse(name[Ypos].ToString());
-            return result;
+        private void Redo_Click(object sender, RoutedEventArgs e)
+        {
+            var may = _comands.GetUpperBound(0) > _current;
+            var isSuccess = false;
+            var player = string.Empty;
+            if (may)
+            {
+                player = _game.GetActivePlayer();
+                var next = _current + 1;
+                isSuccess = _game.Apply(_comands[next]);
+            }
+            if (isSuccess)
+            {
+                _current++;
+                _painter.Paint(_paints[_current]);
+                ShowActivePlayer();
+            }
+            if (isSuccess)
+            {
+                ShowWinner(player);
+            }
         }
     }
 }

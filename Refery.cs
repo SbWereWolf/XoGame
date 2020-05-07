@@ -5,8 +5,8 @@ namespace XoGame
 {
     internal class Refery
     {
-         private readonly Dictionary<Tuple<int, int>, int> _map;
-         private readonly Tuple<int, int>[] _vectors;
+        private readonly Dictionary<Tuple<int, int>, int> _map;
+        private readonly Tuple<int, int>[] _vectors;
 
         public Refery(Dictionary<Tuple<int, int>, int> map)
         {
@@ -69,7 +69,7 @@ namespace XoGame
             return result;
         }
 
-        
+
         private static Tuple<int, int> Forward(Tuple<int, int> cell, Tuple<int, int> vector)
         {
             var result = new Tuple<int, int>(int.MinValue, int.MinValue);
@@ -83,7 +83,7 @@ namespace XoGame
             return result;
         }
 
-        
+
         private static Tuple<int, int> Backward(Tuple<int, int> cell, Tuple<int, int> vector)
         {
             var result = new Tuple<int, int>(int.MinValue, int.MinValue);

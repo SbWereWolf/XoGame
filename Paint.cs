@@ -7,12 +7,12 @@ namespace XoGame
     class Paint
     {
         private readonly int _tag = -1;
-         private readonly Button[] _canvas;
-         private readonly string _mark;
+        private readonly Button[] _canvas;
+        private readonly string _mark;
 
         public Paint(Button[] cells, Tuple<int, int> cell, string mark)
         {
-            _canvas = new Button[]{};
+            _canvas = new Button[] { };
             if (cells != null)
             {
                 _canvas = cells;

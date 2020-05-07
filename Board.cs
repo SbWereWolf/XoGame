@@ -104,13 +104,13 @@ namespace XoGame
             {
                 map?.Add(key, mark);
             }
-            
+
         }
 
         private bool IsEmpty(Tuple<int, int> key)
         {
             var has = false;
-            if (key!= null)
+            if (key != null)
             {
                 has = _map0 != null && _mapX != null && (_mapX.ContainsKey(key) || _map0.ContainsKey(key));
             }

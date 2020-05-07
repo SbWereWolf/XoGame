@@ -12,13 +12,13 @@ namespace XoGame
     /// </summary>
     public partial class MainWindow
     {
-         private readonly Game _game;
-         private readonly Board _board;
-         private Turn[] _comands;
+        private readonly Game _game;
+        private readonly Board _board;
+        private Turn[] _comands;
 
-         private readonly Painter _painter;
-         private readonly Button[] _cells;
-         private Paint[] _paints;
+        private readonly Painter _painter;
+        private readonly Button[] _cells;
+        private Paint[] _paints;
 
         private const int NoIndex = -1;
         private int _current = NoIndex;
@@ -54,7 +54,8 @@ namespace XoGame
         {
             var theButton = (Button)sender;
             var key = 0;
-            var isSuccess = theButton?.Tag != null && int.TryParse(theButton.Tag.ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out key);
+            var isSuccess = theButton?.Tag != null
+                && int.TryParse(theButton.Tag.ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out key);
             if (!isSuccess)
                 MessageBox.Show("Fail parse cell number");
 

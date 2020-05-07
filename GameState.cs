@@ -2,6 +2,6 @@
 {
     enum GameState
     {
-        Draw, Win,InProcess
+        Draw, Win, InProcess
     }
 }

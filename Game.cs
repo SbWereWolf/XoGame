@@ -20,7 +20,7 @@
             var complete = false;
             if (may && _activePlayer == _playerX)
             {
-                complete =  turn.RedoX();
+                complete = turn.RedoX();
             }
             if (may && _activePlayer != _playerX)
             {
@@ -30,7 +30,7 @@
             {
                 CalculateState(turn);
             }
-            
+
 
             return complete;
         }

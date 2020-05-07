@@ -7,7 +7,7 @@ namespace XoGame
         private readonly Tuple<int, int> _cell;
         private readonly Board _board;
 
-        public Turn(Board board , Tuple<int, int> cell)
+        public Turn(Board board, Tuple<int, int> cell)
         {
             _board = board;
             _cell = cell;
@@ -29,7 +29,7 @@ namespace XoGame
         public bool IsWin()
         {
             return _board != null && _board.IsFatality(_cell);
-            
+
         }
 
         public bool IsDraw()

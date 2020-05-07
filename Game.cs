@@ -32,7 +32,7 @@
             }
             
 
-            return may;
+            return complete;
         }
 
         private void CalculateState(Turn turn)

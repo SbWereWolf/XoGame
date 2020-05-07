@@ -70,16 +70,18 @@ namespace XoGame
                 isSuccess = _game.Apply(turn);
             }
             if (!isSuccess)
+            {
                 MessageBox.Show("Не верный ход");
+            }
             if (isSuccess)
             {
-                theButton.Content = player;
+                var paint = new Paint(_cells, cell, player);
+                _painter.Paint(paint);
                 ShowActivePlayer();
 
                 TakeTurns(_current);
                 AddTurn(turn);
 
-                var paint = new Paint(_cells, cell, player);
                 TakePaints(_current);
                 AddPaint(paint);
 
